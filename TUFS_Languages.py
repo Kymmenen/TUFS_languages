@@ -37,6 +37,29 @@ class TUFS_Languages():
         
     return word_csv
 
+  def makeTable(self, html):
+    word_table = "|単語|原型|意味|品詞|\n|---|---|---|---|\n"
+    get_word = html.find_all("div", class_="vocabularyDiv")
+
+    for i in range(len(get_word)):
+      if(get_word[i].find("span", class_="token") != None):
+        word_table += "|"+get_word[i].find("span", class_="token").string
+      else: word_table += "|"
+
+      if(get_word[i].find("span", class_="type") != None):
+        word_table += "|"+get_word[i].find("span", class_="type").string
+      else: word_table += "|"
+
+      if(get_word[i].find("span", class_="sense") != None):
+        word_table += "|"+get_word[i].find("span", class_="sense").string
+      else: word_table += "|"
+
+      if(get_word[i].find("span", class_="pos") != None):
+        word_table += "|"+get_word[i].find("span", class_="pos").string + "|\n"
+      else: word_table += "||\n"
+        
+    return word_table
+
   def outputWord(self, language, number, word_csv):
     subprocess.call(["mkdir", "-p", "result/"+language+"/vocabulary"])
     path = "result/"+language+"/vocabulary/"+language+"_word_"+number+".csv"
@@ -47,7 +70,7 @@ class TUFS_Languages():
   def dialogue(self, html):
     title = html.find_all("h1", id="titleText")
     dialogue = html.find_all("div", class_="trgLangDiv")
-    text = title[0].string+"\n"
+    text = "## "+title[0].string+"\n"
     personA = ""
 
     for i in range(len(dialogue)):
@@ -67,6 +90,13 @@ class TUFS_Languages():
     result = open(path, "w", encoding="utf-8")
     result.write(text)
     result.close()
+
+  def makeMarkdown(self, text, word_csv, language, number):
+    subprocess.call(["mkdir", "-p", "result/"+language+"/markdown"])
+    path = "result/"+language+"/markdown/"+language+"_"+number + ".md"
+    result = open(path, "w", encoding="utf-8")
+    result.write(text + "\n" + word_csv)
+    result.close()
   
 def main():
   obj = TUFS_Languages()
@@ -75,10 +105,13 @@ def main():
   for i in range(1, 41):
     number = "%02i" % i
     html = obj.getHTML(language, number)
-    word_csv = obj.getWord(html)
-    obj.outputWord(language, number, word_csv)
+#    word_csv = obj.getWord(html)
+#    obj.outputWord(language, number, word_csv)
     text = obj.dialogue(html)
-    obj.outputDialogue(language, number, text)
+#    obj.outputDialogue(language, number, text)
+
+    word_table = obj.makeTable(html)
+    obj.makeMarkdown(text, word_table, language, number)
 
 if __name__ == "__main__":
   main()
